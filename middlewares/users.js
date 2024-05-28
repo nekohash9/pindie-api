@@ -2,25 +2,28 @@ const users = require("../models/user");
 const bcrypt = require("bcryptjs");
 
 const findAllUsers = async (req, res, next) => {
+  console.log("GET /api/users");
   req.usersArray = await users.find({}, { password: 0 });
   next();
 };
-
-// Create new user
-const createUser = async (req, res, next) => {
-  console.log("POST /users");
-  try {
-    console.log(req.body);
-    req.user = await users.create(req.body);
-    next();
-  } catch (error) {
+const checkIsUserExists = async (req, res, next) => {
+  const isInArray = req.usersArray.find((user) => {
+    return req.body.email === user.email;
+  });
+  if (isInArray) {
     res.setHeader("Content-Type", "application/json");
-    res.status(400).send("Error create new user");
+    res
+      .status(400)
+      .send(
+        JSON.stringify({ message: "Пользователь с таким email уже существует" })
+      );
+  } else {
+    next();
   }
 };
 
-// Search user by id
 const findUserById = async (req, res, next) => {
+  console.log("GET /api/users/:id");
   try {
     req.user = await users.findById(req.params.id, { password: 0 });
     next();
@@ -28,74 +31,65 @@ const findUserById = async (req, res, next) => {
     res.status(404).send("User not found");
   }
 };
-
-// Update user data
 const updateUser = async (req, res, next) => {
   try {
-    req.user = await users.findByIdAndUpdate(req.params.id, req.body);
+    req.game = await users.findByIdAndUpdate(req.params.id, req.body);
     next();
   } catch (error) {
     res.setHeader("Content-Type", "application/json");
-    res.status(400).send("Error update user");
+    res
+      .status(400)
+      .send(JSON.stringify({ message: "Ошибка обновления пользователя" }));
   }
 };
-
-// Delete user by id
 const deleteUser = async (req, res, next) => {
   try {
-    res.user = await users.findByIdAndDelete(req.params.id);
+    req.user = await users.findByIdAndDelete(req.params.id);
     next();
   } catch (error) {
     res.setHeader("Content-Type", "application/json");
-    res.status(400).send("Error delete user");
+    res
+      .status(400)
+      .send(JSON.stringify({ message: "Ошибка удаления пользователя" }));
   }
 };
-
-// Check username, email and password is empty
 const checkEmptyNameAndEmailAndPassword = async (req, res, next) => {
   if (!req.body.username || !req.body.email || !req.body.password) {
     res.setHeader("Content-Type", "application/json");
-    res.status(400).send("Enter your name, email and password");
+    res
+      .status(400)
+      .send(JSON.stringify({ message: "Введите имя, email и пароль" }));
   } else {
     next();
   }
 };
-
-// Check name or email is empty by update
 const checkEmptyNameAndEmail = async (req, res, next) => {
   if (!req.body.username || !req.body.email) {
     res.setHeader("Content-Type", "application/json");
-    res.status(400).send("Enter your name and email");
+    res.status(400).send(JSON.stringify({ message: "Введите имя и email" }));
   } else {
     next();
   }
 };
 
-// Check email user
-const checkIsUserExists = async (req, res, next) => {
-  const isInArray = req.usersArray.find((user) => {
-    return req.body.email === user.email;
-  });
-  if (isInArray) {
-    res.setHeader("Content-Type", "application/json");
-    res.status(400).send("A user with this email already exists");
-  } else {
-    next();
-  }
-};
-
-// Hash user password
-const hushPassword = async (req, res, next) => {
+const hashPassword = async (req, res, next) => {
   try {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(req.body.password, salt);
     req.body.password = hash;
     next();
   } catch (error) {
-    res.status(400).send("Error hash user password");
+    res.status(400).send({ message: "Ошибка хеширования пароля" });
   }
 };
-
+const createUser = async (req, res, next) => {
+  try {
+    req.user = await users.create(req.body);
+    next();
+  } catch (error) {
+    res.status(400).send("Ошибка при создании пользователя");
+  }
+};
 module.exports = {
   findAllUsers,
   createUser,
@@ -105,5 +99,5 @@ module.exports = {
   checkEmptyNameAndEmailAndPassword,
   checkEmptyNameAndEmail,
   checkIsUserExists,
-  hushPassword,
+  hashPassword,
 };

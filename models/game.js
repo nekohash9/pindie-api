@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const categoryModel = require("./category");
 const userModel = require("./user");
+const categoryModel = require("./category");
 
 const gameSchema = new mongoose.Schema({
   title: {
@@ -48,7 +48,7 @@ gameSchema.statics.findGameByCategory = function (category) {
       select: "-password",
     })
     .then((games) => {
-      return games.filter((games) => games.categories.length > 0);
+      return games.filter((game) => game.categories.length > 0);
     });
 };
 

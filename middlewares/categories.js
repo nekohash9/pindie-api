@@ -1,11 +1,29 @@
 const categories = require("../models/category");
 
 const findAllCategories = async (req, res, next) => {
+  console.log("GET /categories");
   req.categoriesArray = await categories.find({});
   next();
 };
 
-// Create new category
+const checkIsCategoryExists = async (req, res, next) => {
+  const isInArray = req.categoriesArray.find((category) => {
+    return req.body.name === category.name;
+  });
+  if (isInArray) {
+    res.setHeader("Content-Type", "application/json");
+    res
+      .status(400)
+      .send(
+        JSON.stringify({
+          message: "Категория с таким названием уже существует",
+        })
+      );
+  } else {
+    next();
+  }
+};
+
 const createCategory = async (req, res, next) => {
   console.log("POST /categories");
   try {
@@ -14,77 +32,55 @@ const createCategory = async (req, res, next) => {
     next();
   } catch (error) {
     res.setHeader("Content-Type", "application/json");
-    res.status(400).send({ message: "Error create new category" });
+    res
+      .status(400)
+      .send(JSON.stringify({ message: "Ошибка создания категории" }));
   }
 };
 
-// Search category by id
 const findCategoryById = async (req, res, next) => {
+  console.log("GET /categories/:id");
   try {
     req.category = await categories.findById(req.params.id);
     next();
   } catch (error) {
     res.setHeader("Content-Type", "application/json");
-    res.statusCode(404).send(JSON.stringify({ message: "Category not found" }));
+    res.status(404).send(JSON.stringify({ message: "Категория не найдена" }));
   }
 };
 
-// Update category data
 const updateCategory = async (req, res, next) => {
   try {
-    req.category = await categories.findByIdAndUpdate(req.params.id, req.body);
+    req.game = await categories.findByIdAndUpdate(req.params.id, req.body);
     next();
   } catch (error) {
     res.setHeader("Content-Type", "application/json");
     res
-      .statusCode(400)
-      .send(JSON.stringify({ message: "Error update category" }));
+      .status(400)
+      .send(JSON.stringify({ message: "Ошибка обновления категории" }));
   }
 };
-
-// Delete category by id
 const deleteCategory = async (req, res, next) => {
   try {
-    res.category = await categories.findByIdAndDelete(req.params.id);
+    req.category = await categories.findByIdAndDelete(req.params.id);
     next();
   } catch (error) {
     res.setHeader("Content-Type", "application/json");
     res
-      .statusCode(400)
-      .send(JSON.stringify({ message: "Error delete category" }));
+      .status(400)
+      .send(JSON.stringify({ message: "Ошибка удаления категории" }));
   }
 };
-
-// Check is category
-const checkIsCategoryExists = async (req, res, next) => {
-  const isInArray = req.categoriesArray.find((category) => {
-    return req.body.name === category.name;
-  });
-  // If found a match
-  if (isInArray) {
-    res.setHeader("Content-Type", "application/json");
-    res.statusCode(400).send(
-      JSON.stringify({
-        message: "A category with that name already exists",
-      })
-    );
-  } else {
-    next();
-  }
-};
-
-// Check input name is empty
 const checkEmptyName = async (req, res, next) => {
   if (!req.body.name) {
     res.setHeader("Content-Type", "application/json");
     res
-      .statusCode(400)
-      .send(JSON.stringify({ message: "Enter the name of the category" }));
+      .status(400)
+      .send(JSON.stringify({ message: "Введите название категории" }));
   } else {
     next();
   }
 };
-
 module.exports = {
   findAllCategories,
   createCategory,
