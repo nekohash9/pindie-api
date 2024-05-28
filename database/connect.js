@@ -5,13 +5,11 @@ const DB_URL = "mongodb://localhost:27017/pindie";
 async function connectToDatabase() {
   try {
     await mongoose.connect(DB_URL);
-    console.log("Успешно подключились к mongodb");
+    console.log("Good connect to MongoDB");
   } catch (err) {
-    console.log("При подключении mongodb возникла ошибка");
+    console.log("Error connect to MonoDB");
     console.error(err);
   }
-
-  await mongoose.connect(DB_URL);
 }
 
 module.exports = connectToDatabase;
