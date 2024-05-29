@@ -32,5 +32,5 @@ module.exports = {
   sendCategoryCreated,
   sendCategoryById,
   sendCategoryUpdated,
-  sendCategoryDeleted,
+  sendCategoryDeleted
 };
